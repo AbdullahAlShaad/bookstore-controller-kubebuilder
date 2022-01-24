@@ -1,0 +1,17 @@
+domain: gopher.com
+layout:
+- go.kubebuilder.io/v3
+multigroup: true
+projectName: bookstore-controller-kubebuilder
+repo: github.com/Shaad7/bookstore-controller-kubebuilder
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: gopher.com
+  group: core
+  kind: Bookstore
+  path: github.com/Shaad7/bookstore-controller-kubebuilder/apis/core/v1
+  version: v1
+version: "3"

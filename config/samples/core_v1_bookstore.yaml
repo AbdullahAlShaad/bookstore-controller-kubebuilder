@@ -1,0 +1,6 @@
+apiVersion: core.gopher.com/v1
+kind: Bookstore
+metadata:
+  name: bookstore-sample
+spec:
+  # TODO(user): Add fields here
