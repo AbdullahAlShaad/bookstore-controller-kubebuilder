@@ -18,13 +18,16 @@ package core
 
 import (
 	"context"
+	"fmt"
+	"k8s.io/apimachinery/pkg/api/errors"
 
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	corev1 "github.com/Shaad7/bookstore-controller-kubebuilder/apis/core/v1"
+	customcorev1 "github.com/Shaad7/bookstore-controller-kubebuilder/apis/core/v1"
 )
 
 // BookstoreReconciler reconciles a Bookstore object
@@ -47,16 +50,64 @@ type BookstoreReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *BookstoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
 
 	// TODO(user): your logic here
+	bookstore := &customcorev1.Bookstore{}
+	err := r.Client.Get(ctx, req.NamespacedName, bookstore)
+	if err != nil {
+		log.Error(err, "Unable to fetch Bookstore")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	deploymentName := bookstore.Spec.Name + "-deployment"
+	deployment := &appsv1.Deployment{}
+
+	err = r.Client.Get(ctx, req.NamespacedName, deployment)
+	if errors.IsNotFound(err) {
+		// Create deployment
+		fmt.Printf("Creating Deployment\n")
+		if err = r.Client.Create(ctx, newDeployment(bookstore)); err != nil {
+			log.Error(err, "error creating deployment")
+		} else {
+			fmt.Println(deploymentName + "created")
+		}
+
+	} else if err != nil {
+		log.Error(err, "Unable to fetch Deployment")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if *bookstore.Spec.Replicas != *deployment.Spec.Replicas {
+		fmt.Printf("Bookstore Replicas %d , Deployment Replicas %d. .. Updating", *bookstore.Spec.Replicas, *deployment.Spec.Replicas)
+		if err = r.Client.Update(ctx, newDeployment(bookstore)); err != nil {
+			log.Error(err, "error creating deployment")
+		} else {
+			fmt.Println("Updated deployment : " + deploymentName)
+		}
+	}
+
+	// Update Status
+	if err = r.updateBookstoreStatus(ctx, bookstore, deployment); err != nil {
+		log.Error(err, "Cannot update status")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
 	return ctrl.Result{}, nil
+}
+
+func (r *BookstoreReconciler) updateBookstoreStatus(ctx context.Context, bookstore *customcorev1.Bookstore, deployment *appsv1.Deployment) error {
+	bookstoreCopy := bookstore.DeepCopy()
+	bookstoreCopy.Status.AvailableReplicas = deployment.Status.AvailableReplicas
+	if err := r.Status().Update(ctx, bookstoreCopy); err != nil {
+		return err
+	}
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *BookstoreReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&corev1.Bookstore{}).
+		For(&customcorev1.Bookstore{}).
 		Complete(r)
 }

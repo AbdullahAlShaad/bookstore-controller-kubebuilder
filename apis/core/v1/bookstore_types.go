@@ -28,11 +28,11 @@ type BookstoreSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	//+kubebuilder:validation:MinLength=0
+	//+kubebuilder:validation:MinLength=1
 	Name string `json:"name"`
 
 	//+kubebuilder:validation:Minimum=1
-	Replicas *int `json:"replicas"`
+	Replicas *int32 `json:"replicas"`
 
 	//+optional
 	ImageName string `json:"imageName,omitempty"`
@@ -40,7 +40,7 @@ type BookstoreSpec struct {
 	ServiceType ServiceType `json:"serviceType"`
 
 	//optional
-	ContainerPort int `json:"containerPort,omitempty"`
+	ContainerPort int32 `json:"containerPort,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=NodePort;ClusterIP;LoadBalancer
