@@ -28,14 +28,36 @@ type BookstoreSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Bookstore. Edit bookstore_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	//+kubebuilder:validation:MinLength=0
+	Name string `json:"name"`
+
+	//+kubebuilder:validation:Minimum=1
+	Replicas *int `json:"replicas"`
+
+	//+optional
+	ImageName string `json:"imageName,omitempty"`
+
+	ServiceType ServiceType `json:"serviceType"`
+
+	//optional
+	ContainerPort int `json:"containerPort,omitempty"`
 }
+
+// +kubebuilder:validation:Enum=NodePort;ClusterIP;LoadBalancer
+type ServiceType string
+
+const (
+	NodePort     ServiceType = "NodePort"
+	ClusterIP    ServiceType = "ClusterIP"
+	LoadBalancer ServiceType = "LoadBalancer"
+)
 
 // BookstoreStatus defines the observed state of Bookstore
 type BookstoreStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	AvailableReplicas int32 `json:"availableReplicas"`
 }
 
 //+kubebuilder:object:root=true
