@@ -36,18 +36,14 @@ spec:
           spec:
             description: BookstoreSpec defines the desired state of Bookstore
             properties:
-              containerPort:
-                description: optional
-                format: int32
-                type: integer
               imageName:
                 type: string
-              kindNodePort:
-                format: int32
-                type: integer
               name:
                 minLength: 1
                 type: string
+              port:
+                format: int32
+                type: integer
               replicas:
                 format: int32
                 minimum: 1

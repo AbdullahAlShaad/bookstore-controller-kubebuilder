@@ -47,26 +47,28 @@ func getServicePort(bookstore *customcorev1.Bookstore) (corev1.ServiceType, core
 
 	var servicePort corev1.ServicePort
 	var serviceType corev1.ServiceType
+	var containerPort int32 = 8081
+
 	if bookstore.Spec.ServiceType == customcorev1.NodePort {
 		serviceType = corev1.ServiceTypeNodePort
 		servicePort = corev1.ServicePort{
-			Port:       bookstore.Spec.ContainerPort,
-			TargetPort: intstr.FromInt(int(bookstore.Spec.ContainerPort)),
-			NodePort:   bookstore.Spec.KindNodePort,
+			Port:       containerPort,
+			TargetPort: intstr.FromInt(int(containerPort)),
+			NodePort:   bookstore.Spec.Port,
 		}
 	} else if bookstore.Spec.ServiceType == customcorev1.ClusterIP {
 		serviceType = corev1.ServiceTypeClusterIP
 		servicePort = corev1.ServicePort{
 			Protocol:   corev1.ProtocolTCP,
-			Port:       bookstore.Spec.ContainerPort,
-			TargetPort: intstr.FromInt(int(bookstore.Spec.ContainerPort)),
+			Port:       containerPort,
+			TargetPort: intstr.FromInt(int(containerPort)),
 		}
 	} else {
 		serviceType = corev1.ServiceTypeLoadBalancer
 		servicePort = corev1.ServicePort{
 			Protocol:   corev1.ProtocolTCP,
-			Port:       bookstore.Spec.ContainerPort,
-			TargetPort: intstr.FromInt(int(bookstore.Spec.ContainerPort)),
+			Port:       containerPort,
+			TargetPort: intstr.FromInt(int(containerPort)),
 		}
 	}
 	return serviceType, servicePort

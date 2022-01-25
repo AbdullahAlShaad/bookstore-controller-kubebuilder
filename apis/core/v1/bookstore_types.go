@@ -39,11 +39,8 @@ type BookstoreSpec struct {
 
 	ServiceType ServiceType `json:"serviceType"`
 
-	//optional
-	ContainerPort int32 `json:"containerPort,omitempty"`
-
 	//+optional
-	KindNodePort int32 `json:"kindNodePort"`
+	Port int32 `json:"port"`
 }
 
 // +kubebuilder:validation:Enum=NodePort;ClusterIP;LoadBalancer

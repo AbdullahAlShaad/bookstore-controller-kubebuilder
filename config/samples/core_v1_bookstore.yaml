@@ -7,5 +7,4 @@ spec:
   replicas: 5
   imageName: bookstore-api-server
   serviceType: NodePort
-  containerPort: 8081
-  kindNodePort: 30000
+  port: 30000
