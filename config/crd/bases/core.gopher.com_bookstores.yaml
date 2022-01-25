@@ -38,13 +38,15 @@ spec:
             properties:
               containerPort:
                 description: optional
+                format: int32
                 type: integer
               imageName:
                 type: string
               name:
-                minLength: 0
+                minLength: 1
                 type: string
               replicas:
+                format: int32
                 minimum: 1
                 type: integer
               serviceType:

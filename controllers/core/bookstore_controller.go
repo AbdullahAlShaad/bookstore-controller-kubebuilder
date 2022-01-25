@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -53,35 +54,45 @@ func (r *BookstoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	log := log.FromContext(ctx)
 
 	// TODO(user): your logic here
+
+	fmt.Println("Reconciling")
+
 	bookstore := &customcorev1.Bookstore{}
 	err := r.Client.Get(ctx, req.NamespacedName, bookstore)
 	if err != nil {
-		log.Error(err, "Unable to fetch Bookstore")
+		log.Error(err, "Bookstore Not found")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	deploymentName := bookstore.Spec.Name + "-deployment"
 	deployment := &appsv1.Deployment{}
 
-	err = r.Client.Get(ctx, req.NamespacedName, deployment)
+	depNamespaceName := types.NamespacedName{
+		Namespace: req.Namespace,
+		Name:      deploymentName,
+	}
+	fmt.Println(req.NamespacedName)
+	fmt.Println(depNamespaceName)
+
+	err = r.Client.Get(ctx, depNamespaceName, deployment)
 	if errors.IsNotFound(err) {
 		// Create deployment
 		fmt.Printf("Creating Deployment\n")
 		if err = r.Client.Create(ctx, newDeployment(bookstore)); err != nil {
 			log.Error(err, "error creating deployment")
+			return ctrl.Result{}, err
 		} else {
 			fmt.Println(deploymentName + "created")
 		}
-
 	} else if err != nil {
 		log.Error(err, "Unable to fetch Deployment")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
+	} else if *bookstore.Spec.Replicas != *deployment.Spec.Replicas {
 
-	if *bookstore.Spec.Replicas != *deployment.Spec.Replicas {
 		fmt.Printf("Bookstore Replicas %d , Deployment Replicas %d. .. Updating", *bookstore.Spec.Replicas, *deployment.Spec.Replicas)
 		if err = r.Client.Update(ctx, newDeployment(bookstore)); err != nil {
-			log.Error(err, "error creating deployment")
+			log.Error(err, "error updating deployment")
+			return ctrl.Result{}, err
 		} else {
 			fmt.Println("Updated deployment : " + deploymentName)
 		}

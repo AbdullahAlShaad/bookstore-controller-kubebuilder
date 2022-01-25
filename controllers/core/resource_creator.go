@@ -33,7 +33,7 @@ func newDeployment(bookstore *customcorev1.Bookstore) *appsv1.Deployment {
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  "bookstore-api-server",
+							Name:  bookstore.Spec.ImageName,
 							Image: "shaad7/bookstore-api-server:latest",
 						},
 					},

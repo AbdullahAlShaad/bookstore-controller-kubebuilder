@@ -89,7 +89,7 @@ func (in *BookstoreSpec) DeepCopyInto(out *BookstoreSpec) {
 	*out = *in
 	if in.Replicas != nil {
 		in, out := &in.Replicas, &out.Replicas
-		*out = new(int)
+		*out = new(int32)
 		**out = **in
 	}
 }
