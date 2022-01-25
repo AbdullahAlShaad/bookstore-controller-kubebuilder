@@ -8,3 +8,4 @@ spec:
   imageName: bookstore-api-server
   serviceType: NodePort
   containerPort: 8081
+  kindNodePort: 30000

@@ -41,6 +41,9 @@ type BookstoreSpec struct {
 
 	//optional
 	ContainerPort int32 `json:"containerPort,omitempty"`
+
+	//+optional
+	KindNodePort int32 `json:"kindNodePort"`
 }
 
 // +kubebuilder:validation:Enum=NodePort;ClusterIP;LoadBalancer

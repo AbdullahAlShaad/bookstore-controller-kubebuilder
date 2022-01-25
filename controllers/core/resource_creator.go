@@ -44,9 +44,19 @@ func newDeployment(bookstore *customcorev1.Bookstore) *appsv1.Deployment {
 }
 
 func newService(bookstore *customcorev1.Bookstore) *corev1.Service {
+
 	labels := map[string]string{
 		"app":        "bookstore-api-server",
 		"controller": bookstore.Name,
+	}
+
+	var inputServiceType corev1.ServiceType
+	if bookstore.Spec.ServiceType == customcorev1.NodePort {
+		inputServiceType = corev1.ServiceTypeNodePort
+	} else if bookstore.Spec.ServiceType == customcorev1.ClusterIP {
+		inputServiceType = corev1.ServiceTypeClusterIP
+	} else {
+		inputServiceType = corev1.ServiceTypeLoadBalancer
 	}
 
 	return &corev1.Service{
@@ -62,13 +72,13 @@ func newService(bookstore *customcorev1.Bookstore) *corev1.Service {
 			},
 		},
 		Spec: corev1.ServiceSpec{
-			Type:     corev1.ServiceTypeNodePort,
+			Type:     inputServiceType,
 			Selector: labels,
 			Ports: []corev1.ServicePort{
 				corev1.ServicePort{
 					Port:       bookstore.Spec.ContainerPort,
 					TargetPort: intstr.FromInt(int(bookstore.Spec.ContainerPort)),
-					NodePort:   30000,
+					NodePort:   bookstore.Spec.KindNodePort,
 				},
 			},
 		},
