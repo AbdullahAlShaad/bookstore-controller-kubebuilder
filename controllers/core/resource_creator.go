@@ -43,6 +43,35 @@ func newDeployment(bookstore *customcorev1.Bookstore) *appsv1.Deployment {
 	}
 }
 
+func getServicePort(bookstore *customcorev1.Bookstore) (corev1.ServiceType, corev1.ServicePort) {
+
+	var servicePort corev1.ServicePort
+	var serviceType corev1.ServiceType
+	if bookstore.Spec.ServiceType == customcorev1.NodePort {
+		serviceType = corev1.ServiceTypeNodePort
+		servicePort = corev1.ServicePort{
+			Port:       bookstore.Spec.ContainerPort,
+			TargetPort: intstr.FromInt(int(bookstore.Spec.ContainerPort)),
+			NodePort:   bookstore.Spec.KindNodePort,
+		}
+	} else if bookstore.Spec.ServiceType == customcorev1.ClusterIP {
+		serviceType = corev1.ServiceTypeClusterIP
+		servicePort = corev1.ServicePort{
+			Protocol:   corev1.ProtocolTCP,
+			Port:       bookstore.Spec.ContainerPort,
+			TargetPort: intstr.FromInt(int(bookstore.Spec.ContainerPort)),
+		}
+	} else {
+		serviceType = corev1.ServiceTypeLoadBalancer
+		servicePort = corev1.ServicePort{
+			Protocol:   corev1.ProtocolTCP,
+			Port:       bookstore.Spec.ContainerPort,
+			TargetPort: intstr.FromInt(int(bookstore.Spec.ContainerPort)),
+		}
+	}
+	return serviceType, servicePort
+}
+
 func newService(bookstore *customcorev1.Bookstore) *corev1.Service {
 
 	labels := map[string]string{
@@ -50,14 +79,7 @@ func newService(bookstore *customcorev1.Bookstore) *corev1.Service {
 		"controller": bookstore.Name,
 	}
 
-	var inputServiceType corev1.ServiceType
-	if bookstore.Spec.ServiceType == customcorev1.NodePort {
-		inputServiceType = corev1.ServiceTypeNodePort
-	} else if bookstore.Spec.ServiceType == customcorev1.ClusterIP {
-		inputServiceType = corev1.ServiceTypeClusterIP
-	} else {
-		inputServiceType = corev1.ServiceTypeLoadBalancer
-	}
+	serviceType, servicePort := getServicePort(bookstore)
 
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
@@ -72,14 +94,10 @@ func newService(bookstore *customcorev1.Bookstore) *corev1.Service {
 			},
 		},
 		Spec: corev1.ServiceSpec{
-			Type:     inputServiceType,
+			Type:     serviceType,
 			Selector: labels,
 			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-					Port:       bookstore.Spec.ContainerPort,
-					TargetPort: intstr.FromInt(int(bookstore.Spec.ContainerPort)),
-					NodePort:   bookstore.Spec.KindNodePort,
-				},
+				servicePort,
 			},
 		},
 	}
