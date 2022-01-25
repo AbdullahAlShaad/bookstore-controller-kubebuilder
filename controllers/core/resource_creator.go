@@ -48,13 +48,15 @@ func newService(bookstore *customcorev1.Bookstore) *corev1.Service {
 		"app":        "bookstore-api-server",
 		"controller": bookstore.Name,
 	}
+
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "k8s.io/api/core/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: bookstore.Spec.Name + "-service",
+			Name:      bookstore.Spec.Name + "-service",
+			Namespace: bookstore.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(bookstore, customcorev1.GroupVersion.WithKind("Bookstore")),
 			},

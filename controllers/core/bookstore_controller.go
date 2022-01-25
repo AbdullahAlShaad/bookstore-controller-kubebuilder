@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -82,7 +83,7 @@ func (r *BookstoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			log.Error(err, "error creating deployment")
 			return ctrl.Result{}, err
 		} else {
-			fmt.Println(deploymentName + "created")
+			fmt.Println(deploymentName + " created")
 		}
 	} else if err != nil {
 		log.Error(err, "Unable to fetch Deployment")
@@ -96,6 +97,30 @@ func (r *BookstoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		} else {
 			fmt.Println("Updated deployment : " + deploymentName)
 		}
+	}
+
+	serviceName := bookstore.Spec.Name + "-service"
+	service := &corev1.Service{}
+
+	svcNamespaceName := types.NamespacedName{
+		Namespace: req.Namespace,
+		Name:      serviceName,
+	}
+
+	err = r.Client.Get(ctx, svcNamespaceName, service)
+
+	if errors.IsNotFound(err) {
+		fmt.Println("Creating Service")
+		if err = r.Client.Create(ctx, newService(bookstore)); err != nil {
+			log.Error(err, "error creating service")
+			return ctrl.Result{}, err
+		} else {
+			fmt.Println(serviceName + " created")
+		}
+
+	} else if err != nil {
+		log.Error(err, "Unable to fetch service")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Update Status
