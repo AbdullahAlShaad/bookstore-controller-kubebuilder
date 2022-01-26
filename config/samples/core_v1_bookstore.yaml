@@ -4,7 +4,7 @@ metadata:
   name: bookstore-sample
 spec:
   name: bookstore-controller
-  replicas: 5
+  replicas: 3
   imageName: bookstore-api-server
   serviceType: NodePort
   port: 30000
